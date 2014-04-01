@@ -411,36 +411,4 @@ public class Gini {
 		 * System.out.println(me.getValue()); } System.out.println();
 		 */
 	}
-
-	public static void main(String[] args) {
-		Gini gini = new Gini();
-
-		String[] strClassified = { "<", ">", ">", "<", "<", "<" };
-		String[] strAttrNames = { "sex", "age", "native-country" };
-
-		String[] strBinary = { "Female", "Female", "Male", "Female", "Male",
-				"Male" };
-		String[] strContinuous = { "39", "50", "38", "53", "28", "37" };
-		String[] strCategory = { "United-States", "England", "Canada",
-				"Germany", "United-States", "Germany" };
-
-		ArrayList<String> alCalc = new ArrayList<String>();
-		ArrayList<String> alClas = new ArrayList<String>();
-
-		for (int i = 0; i < strBinary.length; ++i) {
-			alCalc.add(strContinuous[i]);
-			alClas.add(strClassified[i]);
-		}
-
-		Result rst = gini.getGini(alCalc, alClas, strAttrNames[1]);
-		
-		double GiniValue = rst.getGiniValue();
-		ArrayList<String> alMinLeftChild = rst.getAlMinLeftChild();
-		ArrayList<String> alMinRightChild = rst.getAlMinRightChild();
-		
-		System.out.println(GiniValue);
-		System.out.println(alMinLeftChild);
-		System.out.println(alMinRightChild);
-
-	}
 }
