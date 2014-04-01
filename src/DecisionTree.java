@@ -7,6 +7,8 @@
 // 
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 class DecisionTree {
 
@@ -80,7 +82,16 @@ class DecisionTree {
 	// attribute_array stores the training instances' values of the selected attribute.
 	// label_array stores all the instances' labels.
 	// Returns the GINI value of the selected attribute.
-	public double GINI ( ArrayList<String> attribute_array, ArrayList<String> label_array ) {
+	public double GINI ( ArrayList<String> attribute_array, ArrayList<String> label_array, int type ) {
+		int nAttributesNum;
+		int nAttr1Num, nAttr2Num;
+		
+		nAttributesNum = attribute_array.size();
+		
+		for (String s : attribute_array) {
+	        System.out.println(s);
+	    }
+		
 		return 0.0;
 	}
 

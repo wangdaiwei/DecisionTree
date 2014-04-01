@@ -1,0 +1,14 @@
+age 3
+workclass 2
+fnlwgt 3
+education 2
+education-num 3
+marital-status 2
+occupation 2
+relationship 2
+race 2
+sex 1
+capital-gain 3
+capital-loss 3
+hours-per-week 3
+native-country 2
