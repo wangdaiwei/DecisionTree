@@ -69,7 +69,14 @@ public class Gini {
 
 		Collections.sort(alItems, new Comparator<String>() {
 			public int compare(String str1, String str2) {
-				return str1.compareTo(str2);
+//				int result = Integer.parseInt(str1) - Integer.parseInt(str2);
+				try{
+					return Integer.parseInt(str1) - Integer.parseInt(str2) > 0 ? 1 : -1;
+				}
+				catch (Exception e){
+					System.out.print(e.getMessage());
+				}	
+				return 1;
 			}
 		});
 
@@ -410,5 +417,37 @@ public class Gini {
 		 * System.out.print(me.getKey() + ": ");
 		 * System.out.println(me.getValue()); } System.out.println();
 		 */
+	}
+
+	public static void main(String[] args) {
+		Gini gini = new Gini();
+
+		String[] strClassified = { "<", ">", ">", "<", "<", "<" };
+		String[] strAttrNames = { "sex", "age", "native-country" };
+
+		String[] strBinary = { "Female", "Female", "Male", "Female", "Male",
+				"Male" };
+		String[] strContinuous = { "10", "2", "99", "100", "28", "37" };
+		String[] strCategory = { "United-States", "England", "Canada",
+				"Germany", "United-States", "Germany" };
+
+		ArrayList<String> alCalc = new ArrayList<String>();
+		ArrayList<String> alClas = new ArrayList<String>();
+
+		for (int i = 0; i < strBinary.length; ++i) {
+			alCalc.add(strContinuous[i]);
+			alClas.add(strClassified[i]);
+		}
+
+		Result rst = gini.getGini(alCalc, alClas, strAttrNames[1]);
+		
+		double GiniValue = rst.getGiniValue();
+		ArrayList<String> alMinLeftChild = rst.getAlMinLeftChild();
+		ArrayList<String> alMinRightChild = rst.getAlMinRightChild();
+		
+		System.out.println(GiniValue);
+		System.out.println(alMinLeftChild);
+		System.out.println(alMinRightChild);
+
 	}
 }
