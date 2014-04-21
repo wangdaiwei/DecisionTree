@@ -97,10 +97,9 @@ class DecisionTree {
 
     /* Default Constructor */
     public DecisionTree() {
-    	String fileName = "./data/data_parsed.txt";
+    	String fileName = "./data/adult.data.test";
     	readTrainingFile( fileName );
     	divideTrainingSet();
-    	System.out.println("File has been read!!");
     	gini = new Gini();
 	}
 
@@ -199,6 +198,7 @@ class DecisionTree {
      * @param newNodeType      [description]
      * @param newNodeAttrIndex [description]
      * @param newNodeInfo      [description]
+     * @param newMajorClass    [description]
      */
     private void addYesNode(int existingNodeID, 
     						int newNodeID, 
@@ -216,22 +216,21 @@ class DecisionTree {
 	
 		// Search tree
 	
-		if (searchTreeAndAddYesNode( rootNode, existingNodeID, newNodeID, newNodeType, newNodeAttrIndex, newNodeInfo, newMajorClass )) {
-	    	System.out.println("Added node " + newNodeID +
-	    		" onto \"yes\" branch of node " + existingNodeID);
+		if (!searchTreeAndAddYesNode( rootNode, existingNodeID, newNodeID, newNodeType, newNodeAttrIndex, newNodeInfo, newMajorClass )) {
+	    	System.out.println("Node " + existingNodeID + " not found");
 	    }
-		else System.out.println("Node " + existingNodeID + " not found");
 	}
 
     /**
      * Search tree and add yes node
-     * @param  currentNode    	[description]
-     * @param  existingNodeID 	[description]
-     * @param  newNodeID      	[description]
-     * @param  newNodeType    	[description]
+     * @param  currentNode      [description]
+     * @param  existingNodeID   [description]
+     * @param  newNodeID        [description]
+     * @param  newNodeType      [description]
      * @param  newNodeAttrIndex [description]
-     * @param  newNodeInfo   	[description]
-     * @return                	[description]
+     * @param  newNodeInfo      [description]
+     * @param  newMajorClass    [description]
+     * @return                  [description]
      */
     private boolean searchTreeAndAddYesNode(BinTree currentNode,
     										int existingNodeID, 
@@ -246,10 +245,6 @@ class DecisionTree {
 	    	if (currentNode.yesBranch == null) currentNode.yesBranch = new
 	    			BinTree( newNodeID, newNodeType, newNodeAttrIndex, newNodeInfo, newMajorClass );
 	    	else {
-	        	System.out.println("WARNING: Overwriting previous node " +
-					"(id = " + currentNode.yesBranch.nodeID +
-					") linked to yes branch of node " +
-					existingNodeID);
 				currentNode.yesBranch = new BinTree( newNodeID, newNodeType, newNodeAttrIndex, newNodeInfo, newMajorClass );
 			}		
     	    return true;
@@ -276,10 +271,12 @@ class DecisionTree {
     		
     /**
      * Add no node
-     * @param existingNodeID [description]
-     * @param newNodeID      [description]
-     * @param newNodeType    [description]
-     * @param newNodeInfo    [description]
+     * @param existingNodeID   [description]
+     * @param newNodeID        [description]
+     * @param newNodeType      [description]
+     * @param newNodeAttrIndex [description]
+     * @param newNodeInfo      [description]
+     * @param newMajorClass    [description]
      */
     private void addNoNode(	int existingNodeID, 
     						int newNodeID, 
@@ -297,21 +294,21 @@ class DecisionTree {
 	
 		// Search tree
 	
-		if (searchTreeAndAddNoNode( rootNode, existingNodeID, newNodeID, newNodeType, newNodeAttrIndex, newNodeInfo, newMajorClass )) {
-	    	System.out.println("Added node " + newNodeID +
-	    		" onto \"no\" branch of node " + existingNodeID);
+		if (!searchTreeAndAddNoNode( rootNode, existingNodeID, newNodeID, newNodeType, newNodeAttrIndex, newNodeInfo, newMajorClass )) {
+			System.out.println("Node " + existingNodeID + " not found");
 	    }
-		else System.out.println("Node " + existingNodeID + " not found");
 	}
 	
     /**
      * Search tree and add no node
-     * @param  currentNode    [description]
-     * @param  existingNodeID [description]
-     * @param  newNodeID      [description]
-     * @param  newNodeType    [description]
-     * @param  newNodeInfo    [description]
-     * @return                [description]
+     * @param  currentNode      [description]
+     * @param  existingNodeID   [description]
+     * @param  newNodeID        [description]
+     * @param  newNodeType      [description]
+     * @param  newNodeAttrIndex [description]
+     * @param  newNodeInfo      [description]
+     * @param  newMajorClass    [description]
+     * @return                  [description]
      */
     private boolean searchTreeAndAddNoNode(	BinTree currentNode,
     										int existingNodeID, 
@@ -326,11 +323,7 @@ class DecisionTree {
 	    	if (currentNode.noBranch == null) currentNode.noBranch = new
 	    		BinTree( newNodeID, newNodeType, newNodeAttrIndex, newNodeInfo, newMajorClass );
 	    	else {
-	        	System.out.println("WARNING: Overwriting previous node " +
-				"(id = " + currentNode.noBranch.nodeID +
-				") linked to yes branch of node " +
-				existingNodeID);
-			currentNode.noBranch = new BinTree( newNodeID, newNodeType, newNodeAttrIndex, newNodeInfo, newMajorClass );
+				currentNode.noBranch = new BinTree( newNodeID, newNodeType, newNodeAttrIndex, newNodeInfo, newMajorClass );
 			}		
     	    return true;
 	    }
@@ -358,23 +351,9 @@ class DecisionTree {
 
    		searchBestNode( 0, 1, trainingSet );
    		reviseTree( rootNode );
-
-        // System.out.println("\nGENERATE DECISION TREE");
-        // System.out.println("======================");
-        // newTree.createRoot(1,"Does animal eat meat?");
-        // newTree.addYesNode(1,2,"Does animal have stripes?");
-        // newTree.addNoNode(1,3,"Does animal have stripes?");
-        // newTree.addYesNode(2,4,"Animal is a Tiger");
-        // newTree.addNoNode(2,5,"Animal is a Leopard");
-        // newTree.addYesNode(3,6,"Animal is a Zebra");
-        // newTree.addNoNode(3,7,"Animal is a Horse");
     }
 
     private void searchBestNode( int currentNodeID, int newNodeID, HashSet< ArrayList<String> > inputData ) {
-    	// if ( newNodeID > 20 ) {
-    	// 	System.out.println( "Node ID > 20!!" );
-    	// 	return;
-    	// }
     	// Check if the input data is empty
     	if ( inputData.isEmpty() ) {
     		HashSet<String> newNodeInfo = new HashSet<String>();
@@ -451,17 +430,13 @@ class DecisionTree {
     		searchBestNode( 1, 2, setLeftChildData );
     		searchBestNode( 1, 3, setRightChildData );
     	} else {
-    		double previousAccuracy = testAccuracy( validationSet );
-    		System.out.println( "Previous accuracy: " + previousAccuracy );
     		String newMajorClass = getMajorClass( inputData );
     		if ( newNodeID % 2 == 0 ) addYesNode( newNodeID/2, newNodeID, attrType, minAttrIndex, newNodeInfo, newMajorClass );
     		else addNoNode( newNodeID/2, newNodeID, attrType, minAttrIndex, newNodeInfo, newMajorClass );
-    		double accuracy = testAccuracy( validationSet );
-    		System.out.println( "Current accuracy: " + accuracy );
-    		if ( accuracy >= previousAccuracy ) {
-    			searchBestNode( newNodeID, 2*newNodeID, setLeftChildData );
-	    		searchBestNode( newNodeID, 2*newNodeID + 1, setRightChildData );
-    		}
+			// if ( setLeftChildData.size() > 10 )
+				searchBestNode( newNodeID, 2*newNodeID, setLeftChildData );
+			// if ( setRightChildData.size() > 10 )
+    			searchBestNode( newNodeID, 2*newNodeID + 1, setRightChildData );
     	}
     	return;
     }
@@ -512,7 +487,7 @@ class DecisionTree {
     	BinTree currentNode = rootNode;
     	if ( currentNode == null ) return STRING_DEFAULT_CLASS;
     	String predictClass = STRING_DEFAULT_CLASS;
-    	while ( currentNode != null ) {
+    	while ( currentNode.nodeType != LEAF ) {
     		int nodeAttrIndex = currentNode.nodeAttrIndex;
     		predictClass = currentNode.majorClass;
     		if ( currentNode.nodeType == CONTINUOUS ) {
@@ -523,6 +498,7 @@ class DecisionTree {
     			else currentNode = currentNode.noBranch;
     		}
     	}
+    	predictClass = currentNode.majorClass;
     	return predictClass;
     }
 
@@ -554,10 +530,11 @@ class DecisionTree {
     // THE QUERY METHODS //
     ///////////////////////
 
-    public void predictTestData() {
-        HashSet< ArrayList<String> > testSet = readTestingFile("./data/test_parsed.txt");
+    public void predictTestData( String fileName ) {
+        HashSet< ArrayList<String> > testSet = readTestingFile(fileName);
         double accuracy = getAccuracyAndPrintFile( testSet );
         System.out.println( "The accuracy of the decision tree is: " + accuracy );
+        System.out.println( "Error rate: " + ( 1 - accuracy ) );
     }
 
 	private HashSet< ArrayList<String> > readTestingFile ( String fileName ) {
@@ -597,7 +574,7 @@ class DecisionTree {
     	int hitCount = 0;
 
         try {
-        	BufferedWriter writer = new BufferedWriter( new FileWriter("decision_tree.txt", false) );
+        	BufferedWriter writer = new BufferedWriter( new FileWriter("decision_tree_result.txt", false) );
         	for ( ArrayList<String> record: targetSet ) {
         		for ( int i = 0; i < record.size() - 1; i++ ) {
         			writer.write( record.get(i) + ", " );
@@ -625,8 +602,6 @@ class DecisionTree {
 
     public void outputBinTree() {
 
-        outputBinTree("1",rootNode);
-
         try {
 		    BufferedWriter writer = new BufferedWriter( new FileWriter("decision_tree.txt", false) );
 		    writeBinTree( "", rootNode.yesBranch, rootNode, true, writer );
@@ -636,28 +611,7 @@ class DecisionTree {
 		} catch (IOException ex) {
 		  // report
 		}
-     }
-
-    private void outputBinTree(String tag, BinTree currentNode) {
-
-        // Check for empty node
-
-        if (currentNode == null) return;
-
-        // Output
-
-        System.out.println("[" + tag + "] nodeID = " + currentNode.nodeID +
-        		", nodeType = " + currentNode.nodeType + ", nodeAttrIndex = " + 
-        		currentNode.nodeAttrIndex + ", nodeInfo " + currentNode.nodeInfo);
-        		
-        // Go down yes branch
-
-        outputBinTree(tag + ".1",currentNode.yesBranch);
-
-        // Go down no branch
-
-        outputBinTree(tag + ".2",currentNode.noBranch);
-	}      		
+    }
 
 	private void writeBinTree( String tag, BinTree currentNode, BinTree parentNode, boolean leftFlag, BufferedWriter writer ) throws IOException {
 

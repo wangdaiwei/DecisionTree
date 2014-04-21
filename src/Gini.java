@@ -95,6 +95,25 @@ public class Gini {
 			}
 		});
 
+		HashMap< String, int[] > attrClassRatioMap = getAttrClassRatio ( alCalcAttr, alClasAttr );
+		List< Map.Entry< String, int[] > > list = new LinkedList< Map.Entry<String, int[]> >(attrClassRatioMap.entrySet());
+ 
+		// sort list based on comparator
+		Collections.sort(list, new Comparator< Map.Entry<String, int[]> >() {
+			public int compare(Map.Entry<String, int[]> o1, Map.Entry<String, int[]> o2) {
+				int[] attr1 = o1.getValue();
+				int[] attr2 = o2.getValue();
+				double attr1Ratio , attr2Ratio;
+				if ( attr1[1] == 0 )  attr1Ratio = (double) attr1[0] + 1;
+				else attr1Ratio = (double) attr1[0] / (double) attr1[1];
+				if ( attr2[1] == 0 )  attr2Ratio = (double) attr2[0] + 1;
+				else attr2Ratio = (double) attr2[0] / (double) attr2[1];
+				if ( attr1Ratio - attr2Ratio > 0 ) return 1;
+				else if ( attr1Ratio - attr2Ratio == 0 ) return 0;
+				return -1;
+			}
+		});
+
 		List<String> alLeftChild, alRightChild;
 
 		alLeftChild = new ArrayList<String>();
@@ -106,9 +125,21 @@ public class Gini {
 			alRightChild = new ArrayList<String>(alItems.subList(i + 1,
 					nItemNum));
 
-			array = setAccuArray(alCalcAttr, alClasAttr,
-					(ArrayList<String>) alLeftChild,
-					(ArrayList<String>) alRightChild);
+			array = new int[][]{ {0, 0}, {0, 0} };
+			for ( String attr: alLeftChild ) {
+				int[] classCount = attrClassRatioMap.get( attr );
+				array[0][0] += classCount[0];
+				array[1][0] += classCount[1];
+			}
+			for ( String attr: alRightChild ) {
+				int[] classCount = attrClassRatioMap.get( attr );
+				array[0][1] += classCount[0];
+				array[1][1] += classCount[1];
+			}
+
+			// array = setAccuArray(alCalcAttr, alClasAttr,
+			// 		(ArrayList<String>) alLeftChild,
+			// 		(ArrayList<String>) alRightChild);
 			fGini = getGiniValue(array);
 
 			if (fMinGini == -1 || fGini < fMinGini) {
@@ -152,75 +183,62 @@ public class Gini {
 			return rst;
 		}
 		
-		HashMap<String, Double> attrClassRatioMap = getAttrClassRatio ( alCalcAttr, alClasAttr );
-		List< Map.Entry<String, Double> > list = new LinkedList< Map.Entry<String, Double> >(attrClassRatioMap.entrySet());
+		HashMap< String, int[] > attrClassRatioMap = getAttrClassRatio ( alCalcAttr, alClasAttr );
+		List< Map.Entry< String, int[] > > list = new LinkedList< Map.Entry<String, int[]> >(attrClassRatioMap.entrySet());
  
 		// sort list based on comparator
-		Collections.sort(list, new Comparator< Map.Entry<String, Double> >() {
-			public int compare(Map.Entry<String, Double> o1, Map.Entry<String, Double> o2) {
-				return (o1.getValue())
-                                       .compareTo(o2.getValue());
+		Collections.sort(list, new Comparator< Map.Entry<String, int[]> >() {
+			public int compare(Map.Entry<String, int[]> o1, Map.Entry<String, int[]> o2) {
+				int[] attr1 = o1.getValue();
+				int[] attr2 = o2.getValue();
+				double attr1Ratio , attr2Ratio;
+				if ( attr1[1] == 0 )  attr1Ratio = (double) attr1[0] + 1;
+				else attr1Ratio = (double) attr1[0] / (double) attr1[1];
+				if ( attr2[1] == 0 )  attr2Ratio = (double) attr2[0] + 1;
+				else attr2Ratio = (double) attr2[0] / (double) attr2[1];
+				if ( attr1Ratio - attr2Ratio > 0 ) return 1;
+				else if ( attr1Ratio - attr2Ratio == 0 ) return 0;
+				return -1;
 			}
 		});
  
-		Map<String, Double> sortedAttrClassRatioMap = new LinkedHashMap<String, Double>();
-		for (Map.Entry<String, Double> entry : list) {
+		Map<String, int[]> sortedAttrClassRatioMap = new LinkedHashMap<String, int[]>();
+		for (Map.Entry<String, int[]> entry : list) {
 			sortedAttrClassRatioMap.put(entry.getKey(), entry.getValue());
 		}
+		ArrayList<String> sortedItemList = new ArrayList<String>(sortedAttrClassRatioMap.keySet());
 
-		for (int i = 0; i < nItemNum / 2; ++i) {
-			for( int groupIndex = 0; groupIndex < nItemNum - i; groupIndex++ ) {
-				List<String> alLeftChild, alRightChild;
+		for (int i = 0; i < nItemNum; ++i) {
+			List<String> alLeftChild, alRightChild;
 
-				alLeftChild = new ArrayList<String>();
-				alRightChild = new ArrayList<String>();
-				alRightChild.addAll(alItems);
+			alLeftChild = new ArrayList<String>();
+			alRightChild = new ArrayList<String>();
+			alRightChild.addAll(sortedItemList);
 
-				for( int j = groupIndex; j <= groupIndex + i; j++ ) {
-					alLeftChild.add( alItems.get(j) );
-					alRightChild.remove( alItems.get(j) );
-				}
+			for( int groupIndex = 0; groupIndex < i; groupIndex++ ) {
 
-				array = setAccuArray(alCalcAttr, alClasAttr,
-						(ArrayList<String>) alLeftChild,
-						(ArrayList<String>) alRightChild);
-				fGini = getGiniValue(array);
-
-				if (fMinGini == -1 || fGini < fMinGini) {
-					fMinGini = fGini;
-					alMinLeftChild = (ArrayList<String>) alLeftChild;
-					alMinRightChild = (ArrayList<String>) alRightChild;
-				}
-
+				alLeftChild.add( sortedItemList.get(groupIndex) );
+				alRightChild.remove( sortedItemList.get(groupIndex) );
 			}
-			
-			// List<String> alLeftChild, alRightChild;
 
-			// alLeftChild = new ArrayList<String>();
-			// alRightChild = new ArrayList<String>();
+			array = new int[][]{ {0, 0}, {0, 0} };
+			for ( String attr: alLeftChild ) {
+				int[] classCount = attrClassRatioMap.get( attr );
+				array[0][0] += classCount[0];
+				array[1][0] += classCount[1];
+			}
+			for ( String attr: alRightChild ) {
+				int[] classCount = attrClassRatioMap.get( attr );
+				array[0][1] += classCount[0];
+				array[1][1] += classCount[1];
+			}
+			fGini = getGiniValue(array);
 
-			// Set Flag of categories, create alLeftChild, alRightChild
-			// int[] nFlag = (int[])lFlag.get(i);
-			// for (int j=0; j<nFlag.length;++j){
-			// 	alLeftChild.add(alItems.get(nFlag[j]));
-			// }
-			
-			// for (int j=0; j<nItemNum;++j){
-			// 	if (!alLeftChild.contains(alItems.get(j))){
-			// 		alRightChild.add(alItems.get(j));
-			// 	}
-			// }
-			
-			// array = setAccuArray(alCalcAttr, alClasAttr,
-			// 		(ArrayList<String>) alLeftChild,
-			// 		(ArrayList<String>) alRightChild);
-			// fGini = getGiniValue(array);
-
-			// if (fMinGini == -1 || fGini < fMinGini) {
-			// 	fMinGini = fGini;
-			// 	alMinLeftChild = (ArrayList<String>) alLeftChild;
-			// 	alMinRightChild = (ArrayList<String>) alRightChild;
-			// }
+			if (fMinGini == -1 || fGini < fMinGini) {
+				fMinGini = fGini;
+				alMinLeftChild = (ArrayList<String>) alLeftChild;
+				alMinRightChild = (ArrayList<String>) alRightChild;
+			}
 		}
 
 		rst.setGiniValue(fMinGini);
@@ -275,145 +293,29 @@ public class Gini {
 		return rst;
 	}
 
-	private HashMap<String, Double> getAttrClassRatio ( ArrayList<String> alCalcAttr, ArrayList<String> alClasAttr ) {
-		HashMap<String, Double> attrClassRatioMap = new HashMap<String, Double>();
-		HashMap<String, Integer> attrClassMapA = new HashMap<String, Integer>();
-		HashMap<String, Integer> attrClassMapB = new HashMap<String, Integer>();
+	/**
+	 * Get every different attribute's class count
+	 */
+	private HashMap<String, int[] > getAttrClassRatio ( ArrayList<String> alCalcAttr, ArrayList<String> alClasAttr ) {
+		HashMap< String, int[] > attrClassRatioMap = new HashMap<String, int[] >();
 		String classA = alClasAttr.get(0);
 		for ( int i = 0; i < alCalcAttr.size(); i++ ) {
 			String attr = alCalcAttr.get(i);
 			String classification = alClasAttr.get(i);
 			if ( !attrClassRatioMap.containsKey(attr) ) {
-				attrClassMapA.put( attr, 0 );
-				attrClassMapB.put( attr, 0 );
+				attrClassRatioMap.put( attr, new int[2] );
 			}
 			if ( classA.equals( classification ) ) {
-				int classACount = attrClassMapA.get( attr );
-				attrClassMapA.put( attr, ++classACount );
+				int[] classCount = attrClassRatioMap.get( attr );
+				++classCount[0];
+				attrClassRatioMap.put( attr, classCount );
 			} else {
-				int classBCount = attrClassMapB.get( attr );
-				attrClassMapB.put( attr, ++classBCount );
+				int[] classCount = attrClassRatioMap.get( attr );
+				++classCount[1];
+				attrClassRatioMap.put( attr, classCount );
 			}
-		}
-		for ( String attr : attrClassMapA.keySet() ) {
-			if ( attrClassMapB.get( attr ) == 0 ) attrClassRatioMap.put( attr, (double)attrClassMapA.get( attr ) + 1 );
-			else attrClassRatioMap.put( attr, (double)attrClassMapA.get( attr ) / (double)attrClassMapB.get( attr ) );
 		}
 		return attrClassRatioMap;
-	}
-
-	/**
-	 * 从n个数字中选择m个数字
-	 * 
-	 * @param a
-	 * @param m
-	 * @return
-	 * @throws Exception
-	 */
-	public ArrayList<int[]> combine(int[] a, int m) throws Exception {
-		int n = a.length;
-		if (m > n) {
-			throw new Exception("错误！数组a中只有" + n + "个元素。" + m + "大于" + 2 + "!!!");
-		}
-
-		ArrayList<int[]> result = new ArrayList<int[]>();
-
-		int[] bs = new int[n];
-		for (int i = 0; i < n; i++) {
-			bs[i] = 0;
-		}
-		// 初始化
-		for (int i = 0; i < m; i++) {
-			bs[i] = 1;
-		}
-		boolean flag = true;
-		boolean tempFlag = false;
-		int pos = 0;
-		int sum = 0;
-		// 首先找到第一个10组合，然后变成01，同时将左边所有的1移动到数组的最左边
-		do {
-			sum = 0;
-			pos = 0;
-			tempFlag = true;
-			result.add(addtoList(bs, a, m));
-
-			for (int i = 0; i < n - 1; i++) {
-				if (bs[i] == 1 && bs[i + 1] == 0) {
-					bs[i] = 0;
-					bs[i + 1] = 1;
-					pos = i;
-					break;
-				}
-			}
-			// 将左边的1全部移动到数组的最左边
-
-			for (int i = 0; i < pos; i++) {
-				if (bs[i] == 1) {
-					sum++;
-				}
-			}
-			for (int i = 0; i < pos; i++) {
-				if (i < sum) {
-					bs[i] = 1;
-				} else {
-					bs[i] = 0;
-				}
-			}
-
-			// 检查是否所有的1都移动到了最右边
-			for (int i = n - m; i < n; i++) {
-				if (bs[i] == 0) {
-					tempFlag = false;
-					break;
-				}
-			}
-			if (tempFlag == false) {
-				flag = true;
-			} else {
-				flag = false;
-			}
-
-		} while (flag);
-		result.add(addtoList(bs, a, m));
-
-		return result;
-	}
-
-	private int[] addtoList(int[] bs, int[] a, int m) {
-		int[] result = new int[m];
-		int pos = 0;
-		for (int i = 0; i < bs.length; i++) {
-			if (bs[i] == 1) {
-				result[pos] = a[i];
-				pos++;
-			}
-		}
-		return result;
-	}
-
-	private ArrayList<int[]> setFlag(int num){
-		/**
-		 * Set Flag to the tuples
-		 */
-		
-		int[] nIndex = new int[num];
-		for (int i=0; i<num;i++){
-			nIndex[i]=i;
-		}
-
-		ArrayList<int[]> lFlag = new ArrayList<int[]> ();
-		for (int i=0; i<num/2;i++){
-			ArrayList<int[]> Flag = new ArrayList<int[]>();
-			try {
-				Flag = combine(nIndex,i+1);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			lFlag.addAll(Flag);
-		}
-		
-		return lFlag;
 	}
 	
 	private ArrayList<String> getAllItems(ArrayList<String> alCalcAttr) {

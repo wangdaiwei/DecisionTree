@@ -32,19 +32,21 @@ class DecisionTreeApp {
 
     public static void main(String[] args) throws IOException {
 
+        String testFileName = "./data/test_parsed.txt";
         // Create instance of class DecisionTree
         if ( args.length < 1 ) newTree = new DecisionTree();
-        else newTree = new DecisionTree( args[0] );
+        else if ( args.length == 1 ) newTree = new DecisionTree( args[0] );
+        else if ( args.length == 2 ) {
+            newTree = new DecisionTree( args[0] );
+            testFileName = args[1];
+        }
 
         // Generate tree
 
         newTree.generateTree();
 
         // Output tree
-
-        System.out.println("\nOUTPUT DECISION TREE");
-        System.out.println("====================");
         newTree.outputBinTree();
-        newTree.predictTestData();
+        newTree.predictTestData(testFileName);
     }
 }

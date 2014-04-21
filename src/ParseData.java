@@ -12,7 +12,7 @@ public class ParseData {
 			BufferedWriter writer = new BufferedWriter( new FileWriter(outputFileName, false) );
 			String line = null;
 			int count = 0;
-			reader.readLine();
+			// reader.readLine();
 			while ((line = reader.readLine()) != null) {
 				if (line.equals("")) {
 					continue;
