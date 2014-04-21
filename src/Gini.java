@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -66,6 +67,20 @@ public class Gini {
 		alMinRightChild = new ArrayList<String>();
 
 		ArrayList<String> alItems = getAllItems(alCalcAttr);
+		int nItemNum = getItemNum(alItems);
+
+		if ( nItemNum <= 1 ) {
+			alMinLeftChild = alCalcAttr;
+			alMinRightChild = alCalcAttr;
+			array = setAccuArray(alCalcAttr, alClasAttr, alMinLeftChild, alMinRightChild);
+			array[0][1] = array[0][0];
+			array[1][1] = array[1][0];
+			fMinGini = getGiniValue(array);
+			rst.setGiniValue(fMinGini);
+			rst.setAlMinLeftChild(alMinLeftChild);
+			rst.setAlMinRightChild(alMinRightChild);
+			return rst;
+		}
 
 		Collections.sort(alItems, new Comparator<String>() {
 			public int compare(String str1, String str2) {
@@ -86,7 +101,6 @@ public class Gini {
 		alRightChild = new ArrayList<String>();
 
 		alRightChild.addAll(alItems);
-		int nItemNum = getItemNum(alItems);
 		for (int i = 0; i < nItemNum - 1; ++i) {
 			alLeftChild = new ArrayList<String>(alItems.subList(0, i + 1));
 			alRightChild = new ArrayList<String>(alItems.subList(i + 1,
@@ -121,44 +135,92 @@ public class Gini {
 		alMinLeftChild = new ArrayList<String>();
 		alMinRightChild = new ArrayList<String>();
 
-		
-
 		ArrayList<String> alItems = getAllItems(alCalcAttr);
 		int nItemNum = getItemNum(alItems);
-		
-		ArrayList<int[]> lFlag = setFlag(nItemNum);
-		
-		
 
-		for (int i = 0; i < lFlag.size(); ++i) {
+		if ( nItemNum <= 1 ) {
+
+			alMinLeftChild = alCalcAttr;
+			alMinRightChild = alCalcAttr;
+			array = setAccuArray(alCalcAttr, alClasAttr, alMinLeftChild, alMinRightChild);
+			array[0][1] = array[0][0];
+			array[1][1] = array[1][0];
+			fMinGini = getGiniValue(array);
+			rst.setGiniValue(fMinGini);
+			rst.setAlMinLeftChild(alMinLeftChild);
+			rst.setAlMinRightChild(alMinRightChild);
+			return rst;
+		}
+		
+		HashMap<String, Double> attrClassRatioMap = getAttrClassRatio ( alCalcAttr, alClasAttr );
+		List< Map.Entry<String, Double> > list = new LinkedList< Map.Entry<String, Double> >(attrClassRatioMap.entrySet());
+ 
+		// sort list based on comparator
+		Collections.sort(list, new Comparator< Map.Entry<String, Double> >() {
+			public int compare(Map.Entry<String, Double> o1, Map.Entry<String, Double> o2) {
+				return (o1.getValue())
+                                       .compareTo(o2.getValue());
+			}
+		});
+ 
+		Map<String, Double> sortedAttrClassRatioMap = new LinkedHashMap<String, Double>();
+		for (Map.Entry<String, Double> entry : list) {
+			sortedAttrClassRatioMap.put(entry.getKey(), entry.getValue());
+		}
+
+		for (int i = 0; i < nItemNum / 2; ++i) {
+			for( int groupIndex = 0; groupIndex < nItemNum - i; groupIndex++ ) {
+				List<String> alLeftChild, alRightChild;
+
+				alLeftChild = new ArrayList<String>();
+				alRightChild = new ArrayList<String>();
+				alRightChild.addAll(alItems);
+
+				for( int j = groupIndex; j <= groupIndex + i; j++ ) {
+					alLeftChild.add( alItems.get(j) );
+					alRightChild.remove( alItems.get(j) );
+				}
+
+				array = setAccuArray(alCalcAttr, alClasAttr,
+						(ArrayList<String>) alLeftChild,
+						(ArrayList<String>) alRightChild);
+				fGini = getGiniValue(array);
+
+				if (fMinGini == -1 || fGini < fMinGini) {
+					fMinGini = fGini;
+					alMinLeftChild = (ArrayList<String>) alLeftChild;
+					alMinRightChild = (ArrayList<String>) alRightChild;
+				}
+
+			}
 			
-			List<String> alLeftChild, alRightChild;
+			// List<String> alLeftChild, alRightChild;
 
-			alLeftChild = new ArrayList<String>();
-			alRightChild = new ArrayList<String>();
+			// alLeftChild = new ArrayList<String>();
+			// alRightChild = new ArrayList<String>();
 
 			// Set Flag of categories, create alLeftChild, alRightChild
-			int[] nFlag = (int[])lFlag.get(i);
-			for (int j=0; j<nFlag.length;++j){
-				alLeftChild.add(alItems.get(nFlag[j]));
-			}
+			// int[] nFlag = (int[])lFlag.get(i);
+			// for (int j=0; j<nFlag.length;++j){
+			// 	alLeftChild.add(alItems.get(nFlag[j]));
+			// }
 			
-			for (int j=0; j<nItemNum;++j){
-				if (!alLeftChild.contains(alItems.get(j))){
-					alRightChild.add(alItems.get(j));
-				}
-			}
+			// for (int j=0; j<nItemNum;++j){
+			// 	if (!alLeftChild.contains(alItems.get(j))){
+			// 		alRightChild.add(alItems.get(j));
+			// 	}
+			// }
 			
-			array = setAccuArray(alCalcAttr, alClasAttr,
-					(ArrayList<String>) alLeftChild,
-					(ArrayList<String>) alRightChild);
-			fGini = getGiniValue(array);
+			// array = setAccuArray(alCalcAttr, alClasAttr,
+			// 		(ArrayList<String>) alLeftChild,
+			// 		(ArrayList<String>) alRightChild);
+			// fGini = getGiniValue(array);
 
-			if (fMinGini == -1 || fGini < fMinGini) {
-				fMinGini = fGini;
-				alMinLeftChild = (ArrayList<String>) alLeftChild;
-				alMinRightChild = (ArrayList<String>) alRightChild;
-			}
+			// if (fMinGini == -1 || fGini < fMinGini) {
+			// 	fMinGini = fGini;
+			// 	alMinLeftChild = (ArrayList<String>) alLeftChild;
+			// 	alMinRightChild = (ArrayList<String>) alRightChild;
+			// }
 		}
 
 		rst.setGiniValue(fMinGini);
@@ -191,12 +253,53 @@ public class Gini {
 		alLeftChild.add(strX);
 		alRightChild.add(strY);
 
+		if ( strY.equals("") ) {
+
+			alLeftChild = alCalcAttr;
+			alRightChild = alCalcAttr;
+			array = setAccuArray(alCalcAttr, alClasAttr, alLeftChild, alRightChild);
+			array[0][1] = array[0][0];
+			array[1][1] = array[1][0];
+			fGini = getGiniValue(array);
+			rst.setGiniValue(fGini);
+			rst.setAlMinLeftChild(alLeftChild);
+			rst.setAlMinRightChild(alRightChild);
+			return rst;
+		}
+
 		array = setAccuArray(alCalcAttr, alClasAttr, alLeftChild, alRightChild);
 		fGini = getGiniValue(array);
 		rst.setGiniValue(fGini);
 		rst.setAlMinLeftChild(alLeftChild);
 		rst.setAlMinRightChild(alRightChild);
 		return rst;
+	}
+
+	private HashMap<String, Double> getAttrClassRatio ( ArrayList<String> alCalcAttr, ArrayList<String> alClasAttr ) {
+		HashMap<String, Double> attrClassRatioMap = new HashMap<String, Double>();
+		HashMap<String, Integer> attrClassMapA = new HashMap<String, Integer>();
+		HashMap<String, Integer> attrClassMapB = new HashMap<String, Integer>();
+		String classA = alClasAttr.get(0);
+		for ( int i = 0; i < alCalcAttr.size(); i++ ) {
+			String attr = alCalcAttr.get(i);
+			String classification = alClasAttr.get(i);
+			if ( !attrClassRatioMap.containsKey(attr) ) {
+				attrClassMapA.put( attr, 0 );
+				attrClassMapB.put( attr, 0 );
+			}
+			if ( classA.equals( classification ) ) {
+				int classACount = attrClassMapA.get( attr );
+				attrClassMapA.put( attr, ++classACount );
+			} else {
+				int classBCount = attrClassMapB.get( attr );
+				attrClassMapB.put( attr, ++classBCount );
+			}
+		}
+		for ( String attr : attrClassMapA.keySet() ) {
+			if ( attrClassMapB.get( attr ) == 0 ) attrClassRatioMap.put( attr, (double)attrClassMapA.get( attr ) + 1 );
+			else attrClassRatioMap.put( attr, (double)attrClassMapA.get( attr ) / (double)attrClassMapB.get( attr ) );
+		}
+		return attrClassRatioMap;
 	}
 
 	/**
@@ -434,7 +537,7 @@ public class Gini {
 		ArrayList<String> alCalc = new ArrayList<String>();
 		ArrayList<String> alClas = new ArrayList<String>();
 
-		for (int i = 0; i < strBinary.length; ++i) {
+		for (int i = 0; i < strCategory.length; ++i) {
 			alCalc.add(strContinuous[i]);
 			alClas.add(strClassified[i]);
 		}

@@ -1,33 +1,27 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 
 
 public class ParseData {
 
-	public static HashSet< ArrayList<String> > readFile ( String fileName ) {
+	public static HashSet< ArrayList<String> > preprocessFile ( String fileName, String outputFileName ) {
 		HashSet< ArrayList<String> > dataset = new HashSet< ArrayList<String> >();
 		try {
 			BufferedReader reader = new BufferedReader( new FileReader(fileName) );
+			BufferedWriter writer = new BufferedWriter( new FileWriter(outputFileName, false) );
 			String line = null;
 			int count = 0;
+			reader.readLine();
 			while ((line = reader.readLine()) != null) {
 				if (line.equals("")) {
 					continue;
 				}
+				count++;
 				String[] tmp = line.split(", ");
 				//System.out.println("Line:	" + count);
 				
 				boolean flag = true;
-//				if (count == 16281) {
-//					for (String test: tmp) {
-//						if (test.equals("?")) {
-//							flag = false;
-//						}
-//					}
-//				}
 				for (String test: tmp) {
 					if (test.equals("?")) {
 						flag = false;
@@ -38,17 +32,20 @@ public class ParseData {
 //				}
 				//System.out.println("===================");
 				if (flag == true) {
-					//count++;
+					// Remove the attribute "native-country"
+					for ( int i = 0; i < tmp.length - 2; i++ ) writer.write( tmp[i] + ", " );
+					writer.write( tmp[tmp.length - 1] );
+					writer.newLine();
+				    
 				}
-				count++;
-//				if (count == 100) {
-//					break;
-//				}
+				if (count == 100) {
+					writer.flush();
+				}
 			}
-			System.out.println("Line:	" + count);
+			writer.flush();
+		    writer.close();
 			reader.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -56,8 +53,7 @@ public class ParseData {
 	}
 	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		readFile("./data/adult.data");
+		preprocessFile("./data/adult.test", "./data/test_parsed.txt");
 	}
 
 }

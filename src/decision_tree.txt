@@ -1,0 +1,3 @@
+
+marital-status = [Married-civ-spouse]: >50K
+marital-status != [Married-civ-spouse]: >50K
